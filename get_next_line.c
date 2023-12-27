@@ -6,94 +6,85 @@
 /*   By: tlupu <tlupu@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/16 19:18:15 by tlupu             #+#    #+#             */
-/*   Updated: 2023/12/19 21:10:57 by tlupu            ###   ########.fr       */
+/*   Updated: 2023/12/27 18:12:07 by tlupu            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
-#include <stdio.h>
 
-char	*get_line(int fd, char *arr)
+char	*fill_theline(int fd, char *statbuffr, char *buffr)
 {
-	int		i;
 	int		bytes_read;
-	char	*str;
-	int		j;
+	char	*temp;
 
-	str = malloc(100000);
-	ft_memset(str, '\0', 100000);
 	bytes_read = 1;
 	while (bytes_read > 0)
 	{
-		i = 0;
-		while (i < BUFFER_SIZE && arr[i] == '\0')
-			i++;
-		if (i == BUFFER_SIZE)
-			bytes_read = read(fd, arr, BUFFER_SIZE); // pas 1 trb modificari
-		j = 0;
-		while (arr[j] != '\n' && j < BUFFER_SIZE)
+		bytes_read = read(fd, buffr, BUFFER_SIZE);
+		if (bytes_read == -1)
 		{
-			str[j] = arr[j]; //i trb setat	 // pas 2
-			i++;
+			free(statbuffr);
+			return (NULL);
 		}
-		ft_memset(arr, '\0', i + 1); //pas 3
-		if(j == BUFFER_SIZE)
-			{
-				//cplm sa facccccccccc
-			}
-		if(str[j] == '\n')
-			{
-				str[j] = '\0';
-				return(str);
-			}
-		else
-			bytes_read = read(fd, arr, BUFFER_SIZE);
+		else if (bytes_read == 0)
+			break ;
+		buffr[bytes_read] = '\0';
+		if (!statbuffr)
+			statbuffr = ft_strdup("");
+		temp = statbuffr;
+		statbuffr = ft_strjoin(temp, buffr);
+		free(temp);
+		temp = NULL;
+		if (ft_strchr(buffr, '\n'))
+			break ;
 	}
-	if (bytes_read < 0)
+	return (statbuffr);
+}
+
+char	*check_stat(char *line)
+{
+	int		i;
+	char	*statbuffr;
+
+	i = 0;
+	while (line[i] != '\n' && line[i] != '\0')
+		i++;
+	if (line[i] == '\0' || line[i + 1] == '\0')
+		return (NULL);
+	statbuffr = ft_substr(line, i + 1, ft_strlen(line) - i);
+	if (!statbuffr)
 	{
-		free(arr);
+		free(line);
 		return (NULL);
 	}
+	line[i + 1] = '\0';
+	return (statbuffr);
 }
 
 char	*get_next_line(int fd)
 {
-	static char	arr[1021][BUFFER_SIZE];
-	char		*str;
-	int			i;
+	char		*line;
+	char		*buffr;
+	static char	*statbuffr;
 
-	i = 0;
-	if (fd >= 3 && fd < 1024)
+	buffr = malloc((BUFFER_SIZE + 1) * (sizeof(char)));
+	if (fd < 0 || BUFFER_SIZE <= 0 || fd >= MAX_FD || read(fd, 0, 0) < 0)
 	{
+		free(buffr);
+		free(statbuffr);
+		buffr = NULL;
+		statbuffr = NULL;
+		return (NULL);
 	}
+	if (!buffr)
+		return (NULL);
+	line = fill_theline(fd, statbuffr, buffr);
+	free(buffr);
+	if (!line)
+	{
+		free(statbuffr);
+		return (NULL);
+	}
+	statbuffr = check_stat(line);
+	return (line);
 }
-
-// int main(int argc, char **argv)
-// {
-//     int fd;
-//     char *line;
-//     char arr[BUFFER_SIZE + 1];
-//     char *buff = NULL;
-
-//     if (argc != 2)
-//     {
-//         printf("Usage: %s <filename>\n", argv[0]);
-//         return (1);
-//     }
-
-//     fd = open(argv[1], O_RDONLY);
-//     if (fd == -1)
-//     {
-//         perror("Error opening file");
-//         return (1);
-//     }
-
-//     while ((line = get_line(fd, arr, buff)) != NULL)
-//     {
-//         printf("%s\n", line);
-//         free(line);
-//     }
-
-//     close(fd);
-//     return (0);
-// }
