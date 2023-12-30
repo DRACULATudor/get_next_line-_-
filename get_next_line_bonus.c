@@ -1,18 +1,18 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   get_next_line.c                                    :+:      :+:    :+:   */
+/*   get_next_line_bonus.c                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: tlupu <tlupu@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/12/28 18:46:12 by tlupu             #+#    #+#             */
-/*   Updated: 2023/12/28 18:46:16 by tlupu            ###   ########.fr       */
+/*   Created: 2023/12/28 18:07:49 by tlupu             #+#    #+#             */
+/*   Updated: 2023/12/29 14:53:36 by tlupu            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 
-char	*fill_theline(int fd, char *statbuffr, char *buffr)
+char	*fill_theline(int fd, char *statbuffer, char *buff)
 {
 	int		bytes_read;
 	char	*temp;
@@ -20,72 +20,69 @@ char	*fill_theline(int fd, char *statbuffr, char *buffr)
 	bytes_read = 1;
 	while (bytes_read > 0)
 	{
-		bytes_read = read(fd, buffr, BUFFER_SIZE);
+		bytes_read = read(fd, buff, BUFFER_SIZE);
 		if (bytes_read == -1)
 		{
-			free(statbuffr);
+			free(statbuffer);
 			return (NULL);
 		}
 		else if (bytes_read == 0)
 			break ;
-		buffr[bytes_read] = '\0';
-		if (!statbuffr)
-			statbuffr = ft_strdup("");
-		temp = statbuffr;
-		statbuffr = ft_strjoin(temp, buffr);
+		buff[bytes_read] = '\0';
+		if (!statbuffer)
+			statbuffer = ft_strdup("");
+		temp = statbuffer;
+		statbuffer = ft_strjoin(temp, buff);
 		free(temp);
 		temp = NULL;
-		if (ft_strchr(buffr, '\n'))
+		if (ft_strchr(buff, '\n'))
 			break ;
 	}
-	return (statbuffr);
+	return (statbuffer);
 }
 
-char	*check_stat(char *line)
+char	*update_stat(char *line)
 {
 	int		i;
-	char	*statbuffr;
+	char	*statbuffer;
 
 	i = 0;
 	while (line[i] != '\n' && line[i] != '\0')
 		i++;
-	if (line[i] == '\0' || line[i + 1] == '\0')
+	if (line[i] == 0 || line[i + 1] == 0)
 		return (NULL);
-	statbuffr = ft_substr(line, i + 1, ft_strlen(line) - i);
-	if (!statbuffr)
+	statbuffer = ft_substr(line, i + 1, ft_strlen(line) - i);
+	if (!statbuffer)
 	{
-		free(line);
+		free(statbuffer);
 		return (NULL);
 	}
 	line[i + 1] = '\0';
-	return (statbuffr);
+	return (statbuffer);
 }
 
 char	*get_next_line(int fd)
 {
+	char		*buff;
 	char		*line;
-	char		*buffr;
-	static char	*statbuffr;
+	static char	*statbuffer[MAX_FD];
 
-	buffr = malloc((BUFFER_SIZE + 1) * (sizeof(char)));
-	if (fd < 0 || BUFFER_SIZE <= 0 || fd >= MAX_FD || read(fd, 0, 0) < 0
+	buff = malloc((BUFFER_SIZE + 1) * (sizeof(char)));
+	if (fd < 0 || fd >= MAX_FD || BUFFER_SIZE <= 0 || read(fd, 0, 0) < 0
 		|| fd == 1 || fd == 2)
 	{
-		free(buffr);
-		free(statbuffr);
-		buffr = NULL;
-		statbuffr = NULL;
+		free(buff);
+		free(statbuffer[fd]);
+		buff = NULL;
+		statbuffer[fd] = NULL;
 		return (NULL);
 	}
-	if (!buffr)
+	if (!buff)
 		return (NULL);
-	line = fill_theline(fd, statbuffr, buffr);
-	free(buffr);
+	line = fill_theline(fd, statbuffer[fd], buff);
+	free(buff);
 	if (!line)
-	{
-		free(statbuffr);
 		return (NULL);
-	}
-	statbuffr = check_stat(line);
+	statbuffer[fd] = update_stat(line);
 	return (line);
 }
