@@ -35,9 +35,7 @@ int	ft_strlen(const char *s)
 
 	i = 0;
 	while (s[i] != '\0')
-	{
 		i++;
-	}
 	return (i);
 }
 
@@ -101,14 +99,10 @@ char	*ft_strdup(const char *s1)
 	i = 0;
 	j = 0;
 	while (s1[i] != '\0')
-	{
 		i++;
-	}
 	s2 = (char *)malloc((i + 1) * sizeof(char));
 	if (s2 == NULL)
-	{
 		return (NULL);
-	}
 	while (j <= i)
 	{
 		s2[j] = s1[j];
