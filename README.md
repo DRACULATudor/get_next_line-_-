@@ -4,7 +4,7 @@ The goal of the **get_next_line** project is to create a function that reads a f
 ### Function Prototype
 ```c
 int get_next_line(int fd, char **line);
-
+```
 ## Compilation
 
 ```
